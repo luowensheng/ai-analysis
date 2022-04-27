@@ -2,8 +2,7 @@ from time import sleep, time
 import streamlit as st
 import os
 import cv2
-from dataset import load_dataset, datasets
-from utils import draw_rect, get_movenet_prediction, get_mediapipe_prediction
+from utils import draw_rect, get_movenet_prediction, get_mediapipe_prediction, load_image_from_path
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -40,16 +39,20 @@ def setup_prediction():
             pass
         
         try: 
+            frame_option = load_image_from_path(p)
+            frame = frame_option.unwrap()
+            if frame is None:
+                actual.write(f"An error has occured, please try again with another image. ERROR: {frame_option.logs}")
+                return    
+
+
             t1 = time()
-            data_mp = get_mediapipe_prediction(p)
+            data_mp = get_mediapipe_prediction(frame)
 
             t2 = time()
-            data_mn = get_movenet_prediction(p)
-            
+            data_mn = get_movenet_prediction(frame)
             t3 = time()
-            
-            frame = cv2.imread(p) 
-            
+
             draw_rect(frame, 
                     data_mp, 
                     t2-t1,
@@ -105,43 +108,14 @@ st.markdown(
 </ul>    
 """ , unsafe_allow_html=True)
 
+st.title("""
+Demo
+""")
+path = st.text_input('Enter The path of a local image or a url', "")
 predict_1 = setup_prediction()
-path = st.text_input('Enter The path of a local image', "")
+
 if path!="":
    predict_1(path)
-
-# st.title("""
-# Demo
-# click the "generate" button bellow to view predictions
-# """)
-
-# option = st.selectbox(
-#      'Select a dataset',
-#      tuple(list(datasets)[::-1])
-#      )
-
-# option_age = st.selectbox(
-#      'select age',
-#      tuple(["None"]+list(range(116)))
-#      )
-
-# option_gender = st.selectbox(
-#      'Select a gender',
-#      ("None", 'male', 'female')
-#      )
-
-
-# data = load_dataset(option)
-
-# clicked = st.button("Generate")
-
-# predict = setup_prediction()
-
-
-
-# if clicked:
-#     p = data.by(age=option_age, gender=option_gender)   
-#     predict( p )
 
 
 st.title("""

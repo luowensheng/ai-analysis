@@ -1,10 +1,10 @@
+from re import L
 from types import FunctionType
-import requests
-from subprocess import check_output
-import json
 import cv2
 from models import ComputeAgeGenderKeypointsMN, ComputeAgeGenderKeypointsMP
 from monads import Option
+import numpy as np
+from urllib.request import urlopen
 
 class Mean:
     def __init__(self, resolve=lambda x:x) -> None:
@@ -21,14 +21,30 @@ class Mean:
         return self.resolve(self.val)
 
 
-def predict_given_path(p, func:FunctionType):
-    return Option(lambda : cv2.imread(p)).perform(func)
+def url_to_image(url, readFlag=cv2.IMREAD_COLOR):
 
-def get_movenet_prediction(p):
-    return predict_given_path(p, ComputeAgeGenderKeypointsMN) 
+    resp = urlopen(url)
+    image = np.asarray(bytearray(resp.read()), dtype="uint8")
+    image = cv2.imdecode(image, readFlag)
 
-def get_mediapipe_prediction(p):
-    return predict_given_path(p, ComputeAgeGenderKeypointsMP)
+    return image
+
+
+def load_image_from_path(p):
+    if "http" in p[:6]:
+        return Option(lambda : url_to_image(p))
+    return Option(lambda : cv2.imread(p))
+
+def predict_given_path(p:str, func:FunctionType):
+    if "http" in p[:6]:
+        return Option(lambda : url_to_image(p)).apply(func)
+    return Option(lambda : cv2.imread(p)).apply(func)
+
+def get_movenet_prediction(img):
+    return ComputeAgeGenderKeypointsMN(img)
+
+def get_mediapipe_prediction(img):
+    return ComputeAgeGenderKeypointsMP(img)
  
 
 def draw_rect(_frame, data, elapsed, prediction, imageLocation):
