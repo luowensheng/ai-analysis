@@ -4,12 +4,13 @@ from .Movenet import predict_keypoints, draw_keypoints
 import cv2
 from .tracking import tracker
 import numpy as np
+from .face_detection.mtcnn_model import get_single_bbox
 
 class Mean:
+    
     def __init__(self, resolve=lambda x:x) -> None:
-        self.val = 0
-        self.k = 0
         self.resolve = resolve
+        self.reset()
 
     def update(self, val, reset=False):
         self.k += 1
@@ -18,6 +19,10 @@ class Mean:
         else:    
            self.val = self.val+ (1/self.k)*(val-self.val)
         return self.resolve(self.val)
+    
+    def reset(self):
+        self.val = 0
+        self.k = 0
 
 
 def ComputeAgeGenderKeypoints(frame):
@@ -56,6 +61,22 @@ def ComputeAgeGenderKeypointsMP(frame):
              "shape": frame.shape
             }
 
+def ComputeAgeGenderKeypointsMTCNN(frame):
+    try:
+        x1, y1, x2, y2 = get_single_bbox(frame)
+        data = predict_age_gender(frame[y1:y2, x1:x2])
+
+    except Exception as e:
+        print(e)
+        data = predict_age_gender(frame)
+        x1, y1, x2, y2 = [0, 0, frame.shape[0], frame.shape[1]]
+    
+    return { 
+             "age": data['age'], 
+             "gender": 'male' if data['gender'] ==0 else 'female', 
+             "face": [ x1, y1, x2, y2] ,
+             "shape": frame.shape
+            }
 
 # def ComputeAgeGenderKeypointsMN(frame):
 
