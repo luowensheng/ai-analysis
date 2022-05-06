@@ -159,19 +159,24 @@ Using google image search to get images
 
 search = st.text_input('Search a person', "tsai ying wen")
 clicked = st.button("Predict Google search")
-next_image = st.empty()
+# next_image = st.empty()
 predict_on_search = setup_prediction()
 
-def predict_from_url():
+def predict_from_url(search):
     urls = collect_img_from_google_search(search)[:3]
     for i, url in enumerate(urls):
           setup_prediction()(url)
 
-predict_from_url()
+
 if clicked:
     if search!="":
-        predict_from_url()
+        predict_from_url(search)
 
+else:
+    if search=="" or search=="tsai ying wen":
+       predict_from_url("tsai ying wen")
+
+sleep(1)
 
 st.markdown("""---""")
 st.markdown(f"""
@@ -182,11 +187,14 @@ path = st.text_input('Enter the full path of a local image or a url', "https://t
 clicked = st.button("Predict")
 
 predict_1 = setup_prediction()
-predict_1(path)
+
 
 if clicked:
     if path!="":
         predict_1(path)
+
+else:
+   predict_1(path)
 
 st.markdown("""---""")
 st.markdown(f"""
@@ -203,12 +211,17 @@ option_gender = st.selectbox('Select a gender', ("None", 'male', 'female'))
 clicked = st.button("Generate")
 
 predict = setup_prediction()
-p = dataset.by()
-predict(p)
+
+
 
 if clicked:
     p = dataset.by(age=option_age, gender=option_gender)   
     predict(p)
+
+else:
+    p = dataset.by()
+    predict(p)
+
 
 st.markdown("""---""")
 st.markdown(f"""
