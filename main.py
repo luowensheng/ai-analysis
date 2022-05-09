@@ -9,6 +9,7 @@ import pandas as pd
 from dataset import dataset
 from collect import collect_img_from_google_search
 import streamlit.components.v1 as components
+from design_utils import *
 
 def evaluate_iou(pred, title="title", start=4, end=8):
     res = []
@@ -25,38 +26,9 @@ def evaluate_iou(pred, title="title", start=4, end=8):
     ax.grid(1)
     return fig    
 
-# %%
-def stringify_attributes(attributes={}):
-    return ' '.join([f'{attr}="{attributes[attr]}"' for attr in attributes])
-
-def add_content(items, attributes={}, extra=''):
-    return f"{extra} <ul>"+' '.join([f"<li {stringify_attributes(attributes)}>{item}</li>" for item in items]) + "</ul>" 
-
-add_listitem = lambda items, extra='': add_content(items, {'style':'padding-right:10px; padding-bottom:10px; font-family:"Poppins";'}, extra=extra)
-
-wrap_title = lambda content:f"* <h3><b>{content}</b><h3>"
-
-def add_resource(url, title, content, img_src, img_width=100, img_height=200):
-    return f"""
-                    <div style="display:grid; grid-template-columns: repeat(9, 1fr); margin-bottom:20px" >        
-                    <div style=" grid-column: 1/ 4; padding: 5px;">
-                        <a  href="{url}"> {title}</a> 
-                        <p style="overflow-wrap: break-word; word-wrap: break-word; hyphens: auto;">
-                            {content}
-                        </p>                        
-                    </div>
-
-                    <img src="{img_src}" 
-                        width={img_width} height={img_height} style="grid-column: 4/ -1;"/>
-                </div>
-    """
-
-def wrap_with_html_tag(tag, content, attributes={}):
-    return f"""<{tag} {stringify_attributes(attributes)}>
-             {content}
-            </{tag}>
-           """
-
+def add_separation():
+    st.markdown("""---""") 
+    st.markdown("""---""") 
 
 st.title("""
 Introduction
@@ -76,8 +48,7 @@ f"""
             url="https://google.github.io/mediapipe/solutions/face_detection.html", 
             title="Mediapipe face detection", 
             content=add_listitem([
-                "Fast", 
-                "lightweight", 
+                "Fast and lightweight", 
                 "Optimized for cpu and mobile devices",
                 wrap_with_html_tag("a", 
                                    "Paper-- BlazeFace: Sub-millisecond Neural Face Detection on Mobile GPUs", 
@@ -94,7 +65,9 @@ f"""
             content=add_listitem([
                 "Fast and lightweight", 
                 "Optimized for cpu and mobile devices",
-                "Used for both single and multiple person pose estimation"
+                "Used for both single and multiple person pose estimation",
+                "Can detect up to 6 people one image",
+
             ]),
             img_src="https://1.bp.blogspot.com/-z7eLvmyTc6Y/YJ6y4qWlW0I/AAAAAAAAEM0/GhsdUgw8dQk8zF1G4rXukd2PlCtGJ5PHACLcBGAsYHQ/s0/anastasia_labeled.jpeg",
             img_width=300, 
@@ -105,7 +78,9 @@ f"""
             url="https://github.com/ipazc/mtcnn", 
             title="MTCNN face detection", 
             content=add_listitem([
-                "Fast and lightweight", 
+                "Slower but has a good performance", 
+                "Good performance for far targets",
+                "Can detect more than 20 faces in one image",
                 wrap_with_html_tag('a', 
                                    "Paper-- Joint Face Detection and Alignment using Multi-task Cascaded Convolutional Network", 
                                    {'href':"https://arxiv.org/ftp/arxiv/papers/1604/1604.02878.pdf"})
@@ -141,8 +116,7 @@ f"""
 
 """, width=900, height=1600, scrolling=True )
 
-st.markdown("""---""") 
-st.markdown("""---""") 
+add_separation()
 
 st.title("""
 Demo
@@ -159,7 +133,6 @@ Using google image search to get images
 
 search = st.text_input('Search a person', "tsai ying wen")
 clicked = st.button("Predict Google search")
-# next_image = st.empty()
 predict_on_search = setup_prediction()
 
 def predict_from_url(search):
@@ -236,10 +209,9 @@ video_path = st.text_input('Enter The path of a local video or a url', video)
 
 clicked = st.button("Video Demo")
 
-
+play_video = setup_video()
 if clicked:
     if video_path!='' and video_path!=video:
-        play_video = setup_video()
         play_video(video_path)
 
 st.markdown("""---""") 
@@ -291,8 +263,8 @@ st.markdown("""
 <br/>
 
 """, unsafe_allow_html=True)
-st.markdown("""---""") 
-st.markdown("""---""") 
+
+add_separation()
 
 st.title("Results")
 col1, col2 = st.columns(2)
@@ -305,11 +277,57 @@ mp = np.mean(results[:, 0, 0]), np.mean(np.abs(results[:, 0, 1]))
 df = pd.DataFrame(
     np.array([["mediapipe",np.round(mp[0], 2), np.round(mp[1], 2)], ["movenet", np.round(mn[0], 2), np.round(mn[1], 2)]]),
     columns=("Model", "gender accuracy", "age mae"))
-st.markdown("""
-<p>Movenet vs Mediapipe Age and gender detection Results</p>
-""", unsafe_allow_html=True)
-st.table(df)
 
-st.markdown("""---""") 
-st.markdown("""---""") 
+st.table(df)
+st.markdown(make_table_title("Movenet vs Mediapipe Age and gender detection Results"), unsafe_allow_html=True)
+
+
+
+st.table(list_to_table([
+                ["Device", "MobileNetV2-SSD (fps)", "Mediapipe (fps)"],
+                ["Apple iPhone 7", ms_to_fps(4.2), ms_to_fps(1.8)],
+                ["Apple iPhone XS", ms_to_fps(2.1), ms_to_fps(0.6)],
+                ["Google Pixel 3", ms_to_fps(7.2), ms_to_fps(3.4)],
+                ["Huawei P20", ms_to_fps(21.3), ms_to_fps(5.8)],
+                ["Samsung Galaxy S9+", ms_to_fps(7.2), ms_to_fps(3.7)],
+]))
+st.markdown(make_table_title("Mediapipe performance on different devices"), unsafe_allow_html=True)
+
+
+
+st.table(list_to_table([
+            ["Model", "Size (MB)", "mAP", "Pixel 5 - CPU 4 threads", "Pixel 5 - GPU", "Raspberry Pi 4 - CPU 4 threads" ],
+            ["MoveNet.Thunder (FP16 quantized)",  "12.6MB", 72.0, ms_to_fps(155), ms_to_fps(45), ms_to_fps(594)],
+            ["MoveNet.Thunder (INT8 quantized)", "7.1MB", 68.9,ms_to_fps(100), ms_to_fps(52), ms_to_fps(251)],
+            ["MoveNet.Lightning (FP16 quantized)", "4.8MB", 63.0,ms_to_fps(60), ms_to_fps(25), ms_to_fps(186)],
+            ["MoveNet.Lightning (INT8 quantized)", "2.9MB", 57.4, ms_to_fps(52), ms_to_fps(28), ms_to_fps(95)],
+            ["PoseNet(MobileNetV1 backbone, FP32)", "13.3MB", 45.6,ms_to_fps(80), ms_to_fps(40), ms_to_fps(338)]
+]))
+st.markdown(make_table_title("Movenet performance on different devices"), unsafe_allow_html=True)
+
+add_separation()
 # %%
+
+
+
+# ("""
+# Publications
+# Bringing artworks to life with AR in Google Developers Blog
+# Prosthesis control via Mirru App using MediaPipe hand tracking in Google Developers Blog
+# SignAll SDK: Sign language interface using MediaPipe is now available for developers in Google Developers Blog
+# MediaPipe Holistic - Simultaneous Face, Hand and Pose Prediction, on Device in Google AI Blog
+# Background Features in Google Meet, Powered by Web ML in Google AI Blog
+# MediaPipe 3D Face Transform in Google Developers Blog
+# Instant Motion Tracking With MediaPipe in Google Developers Blog
+# BlazePose - On-device Real-time Body Pose Tracking in Google AI Blog
+# MediaPipe Iris: Real-time Eye Tracking and Depth Estimation in Google AI Blog
+# MediaPipe KNIFT: Template-based feature matching in Google Developers Blog
+# Alfred Camera: Smart camera features using MediaPipe in Google Developers Blog
+# Real-Time 3D Object Detection on Mobile Devices with MediaPipe in Google AI Blog
+# AutoFlip: An Open Source Framework for Intelligent Video Reframing in Google AI Blog
+# MediaPipe on the Web in Google Developers Blog
+# Object Detection and Tracking using MediaPipe in Google Developers Blog
+# On-Device, Real-Time Hand Tracking with MediaPipe in Google AI Blog
+# MediaPipe: A Framework for Building Perception Pipelines
+
+# """)

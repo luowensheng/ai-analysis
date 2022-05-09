@@ -3,3 +3,4 @@ run.bat
 venv
 *pth
 weights
+test.py
