@@ -305,6 +305,14 @@ st.table(list_to_table([
 ]))
 st.markdown(make_table_title("Movenet performance on different devices"), unsafe_allow_html=True)
 
+
+st.table(list_to_table([
+    ["device", "fps"],
+    ["2.6 GHZ CPU", "16 fps"],
+    ["Nvidia Titan Black GPU", "99 fps"],
+]))
+st.markdown(make_table_title("MTCNN performance on different devices"), unsafe_allow_html=True)
+
 add_separation()
 # %%
 

@@ -3,7 +3,7 @@ from keras.models import load_model
 import tensorflow as tf
 import cv2
 
-model_path = "G:/MyDocuments/coding/Python/fastapi/websockets/models/weights/age_gender_model2.h5"
+model_path = "./weights/age_gender_model2.h5"
 model = load_model(model_path)
 model.compile()
 MAX_AGE = 116

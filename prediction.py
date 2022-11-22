@@ -95,7 +95,6 @@ def setup_prediction(prediction_functions:list[Tuple[str, FunctionType]]=PREDICT
                 actual.write(f"An error has occured, please try again with another image. ERROR: {frame_option.logs}")
                 return    
 
-
             for predictor in predictors:
                 predictor.predict_and_draw(frame)
             

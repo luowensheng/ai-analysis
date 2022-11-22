@@ -1,8 +1,8 @@
 *__pycache__
 run.bat
 venv
-*pth
-weights
+# *pth
+# weights
 test.py
 
 # Byte-compiled / optimized / DLL files
